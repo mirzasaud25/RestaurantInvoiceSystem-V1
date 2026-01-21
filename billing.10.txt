@@ -1,0 +1,418 @@
+
+package salereceipt;
+
+import java.util.Scanner;
+
+class Item
+{
+   private String itemId;
+   private String itemName;
+   private double price;
+   
+   Item(String itemId, String itemName,double price)
+   {
+       this.itemId=itemId;
+       this.itemName=itemName;
+       this.price=price;
+   }
+   Item(String itemId ,String itemName)
+   {
+       this.itemId=itemId;
+       this.itemName=itemName;
+   }
+   public String getItemName()
+   {
+       return itemName;
+   }
+   public double getPrice()
+   {
+       return price;
+   }
+   public String getitemID()
+   {
+       return itemId;
+   }
+   
+}
+
+
+abstract class User
+{
+    private String name;
+    private String userId;
+    private String phone;
+    
+   User(String name ,String userId ,String phone )
+   {
+       this.name=name;
+       this.userId=userId;
+       this.phone=phone;
+       
+   }
+   abstract void menu();
+   public String getName()
+   {
+       return name;
+   }
+   public String getUserId()
+   {
+       return userId;
+   }
+   public String getuserId()
+   {
+       return userId;
+   }
+   
+}
+class Cashier extends User
+{
+    private String counterNo;
+    private Invoice currentInvoice;
+    
+    Cashier(String name ,String userId,String phone,String counterNo)
+    {
+        super(name,userId,phone);
+        this.counterNo=counterNo;
+        this.currentInvoice = null;
+    }
+    @Override
+    public void menu()
+    {
+        System.out.println("=====CHASIER MENU=====");
+        System.out.println("1: New Invoice");
+        System.out.println("2: Show Menu");
+        System.out.println("3: Add Item ");
+        System.out.println("4: Close & Payment");
+        System.out.println("5: Print Receipt");
+        System.out.println("6: Exit");
+         
+    }
+    public void createNewInvoice()
+    {
+        if(currentInvoice == null)
+        {
+            currentInvoice = new Invoice();
+            System.out.println("New Invoice Started");
+        }
+        else
+        {
+            System.out.println("Invoice Already in Progress");
+        }
+    }
+    public void addItemToInvoice(Item item,int Qty)
+    {
+        if (currentInvoice == null)
+        {
+            System.out.println("Please Create Invoice First");
+            return;
+            
+        }
+        
+        currentInvoice.addItem(item, Qty);
+        System.out.println("Item Added");
+        
+    }
+    public void closeInvoice()
+    {
+        if(currentInvoice == null)
+        {
+            System.out.println("No Active Invoice");
+            return;
+        }
+        currentInvoice.calculateNetAmount();
+        System.out.println("Invoice Closed \nTotal = "+currentInvoice.getNetAmount());
+        currentInvoice = null;
+    }
+    public String getCounterNo()
+    {
+        return this.counterNo;
+    }
+    public Invoice getcurrentinvoice()
+    {
+        return this.currentInvoice;
+    }
+}
+
+ class Invoice
+{
+    private String invoiceNo;
+    public  String tokenNo;
+    public  String date ;
+    private Item[] items = new Item[10];
+    private int[] quantities = new int[10];
+    private int itemCount;
+    private double netAmount;
+    
+    
+    Invoice()
+    {
+        this.invoiceNo = "INV-"+System.currentTimeMillis();
+        this.date=java.time.LocalDateTime.now().toString();
+        
+    }
+    public void addItem(Item item,int quantity)
+    {
+        items[itemCount] = item;
+        quantities [itemCount] = quantity;
+        itemCount++;
+    }
+    public void calculateNetAmount()
+    {
+        netAmount = 0;
+        for(int i = 0;i < itemCount ; i++ )
+        {
+            netAmount += items[i].getPrice()*quantities[i];
+        }
+        
+    }
+    public int getQuantity(int index)
+    {
+        return this.quantities[index];
+    }
+    public int getItemCount()
+    {
+        return this.itemCount;
+    }
+    public Item getItem(int index)
+    {
+        return items[index];
+    }
+    public double getNetAmount()
+    {
+        return netAmount;
+    }
+    public String getInvoiceNo()
+    {
+        return this.invoiceNo;
+    }
+    public String getDate()
+    {
+        return this.date;
+    }
+
+    
+}
+class Payment
+{
+    private double cashPaid;
+    private double cashBack;
+    boolean paymentStatus;
+    
+    Payment(double cashPaid)
+    {
+        this.cashPaid = cashPaid;
+        paymentStatus = false;
+        cashBack=0;
+    }
+    public void CalculateCashBack(double netAmount)
+    {
+        if(cashPaid >= netAmount)
+        {    
+        cashBack = cashPaid - netAmount;
+        paymentStatus =true;
+        }
+        else
+        {
+            System.out.println("insufficient Balance try Again");
+        }
+    }
+    public double getCashBack()
+    {
+        return this.cashBack;
+    }
+    public double getCashPaid()
+    {
+        return this.cashPaid;
+    }
+    public boolean PaymentComplete()
+    {
+        return this.paymentStatus;
+    }
+    
+}
+class ReceiptPrint
+{
+    String shopName;
+    String shopAddress;
+    String shopPhone ;
+    
+    ReceiptPrint(String shopName ,String shopAddress,String shopPhone)
+    {
+        this.shopName=shopName;
+        this.shopAddress=shopAddress;
+        this.shopPhone=shopPhone;
+    }
+    public void printHeader(Invoice invoice ,Cashier cashier)
+    {
+        System.out.println("======================");
+        System.out.println("Shop Name :"+shopName);
+        System.out.println("Invoice No :"+invoice.getInvoiceNo());
+        System.out.println("Date :"+invoice.getDate());
+        System.out.println("Cashier :"+cashier.getName());
+        System.out.println("COunter No :"+cashier.getCounterNo());
+        
+    }
+    public void printItemList(Invoice invoice)
+    {
+        for(int i = 0;i < invoice.getItemCount();i++)
+        {
+            System.out.println("================");
+            System.out.println("Items "+invoice.getItem(i).getItemName());
+            System.out.println("Qty "+invoice.getQuantity(i));
+            System.out.println("Price "+invoice.getItem(i).getPrice());
+        }
+        
+    }
+    public void printTotal(Invoice invoice)
+    {
+           
+             System.out.println("TotalItems :"+invoice.getItemCount());  
+             System.out.print("Net Amount :"+invoice.getNetAmount());
+       
+        
+    }
+    public void printPayment(Payment payment)
+    {
+            System.out.println("Cash Paid"+payment.getCashPaid());
+            System.out.println("Cash Back :"+payment.getCashBack());
+    }
+    public void printLastMsg()
+    {
+            System.out.println("Thank You For Visting..");
+    }
+    public void printFullReceipt(Invoice invoice , Cashier cashier ,Payment payment)
+    {
+        printHeader(invoice ,cashier);
+        printItemList(invoice);
+        printTotal(invoice);
+        printPayment(payment);
+        printLastMsg();
+    }
+
+}
+
+
+public class SaleReceipt {
+
+ 
+    public static void main(String[] args) 
+    {
+        
+        ReceiptPrint rp = new ReceiptPrint("Peace FastFood","SurjaniTown Karachi","032122325215");
+        
+        Item menuItem[] =new Item[5];
+        menuItem[0] = new Item("1","Zinger Burger",250);
+        menuItem[1] = new Item("2","Beef Burger",250);
+        menuItem[2] = new Item("3","Cold Drink",250);
+        menuItem[3] = new Item("4","Desert",250);
+        menuItem[4] = new Item("5","End Order");
+        
+        Scanner sc =new Scanner(System.in);
+        
+        
+        System.out.println("Login Cashier");
+        System.out.print("Name : > ");
+        String name =sc.nextLine();
+        System.out.print("Cashier ID : >  ");
+        String cashierID =sc.nextLine();
+        System.out.print("Phone Number  : >  ");
+        String phone = sc.nextLine();
+        System.out.print("Counter NO : >  ");
+        String counterNO =sc.nextLine();
+        Cashier cr = new Cashier(name,cashierID, phone,counterNO);
+        System.out.println("Loggin Now");
+        Payment pm = null;
+        
+        int choice;
+        do{
+            cr.menu();    
+            System.out.println("Enter Your Choice  ");
+            choice=sc.nextInt();
+            switch(choice)
+            {
+                
+                case 1 :{ cr.createNewInvoice();
+             
+                               break; 
+                }  
+                case 2 :{
+                          System.out.println("===Menu Item===");
+                            for(Item s : menuItem)
+                         {
+                           System.out.println(s.getitemID()+"  "+s.getItemName()+"  "+s.getPrice());
+                         }
+                            break;
+                            
+                }
+                case 3 :{System.out.println("Select Item Number ");
+                           String itemId = sc.next();
+                           System.out.println("Select Quanitity");
+                           int Qty=sc.nextInt();
+                           Item SelectItem =null;
+                           for( Item item : menuItem)
+                           {
+                               if(item.getitemID().equalsIgnoreCase(itemId) )
+                               {
+                                  SelectItem = item;
+                                  break;
+                               }
+                               
+                           }
+                           if (SelectItem != null)
+                           {
+                               cr.addItemToInvoice(SelectItem, Qty);
+                           }
+                           else
+                           {
+                               System.out.println(" Item Not Found");
+                           }
+                           break;
+                           
+                }
+                case 4 : {
+                    if (cr.getcurrentinvoice() ==null)
+                    {
+                        System.out.println("Not Actice Invoice ");
+                        break;
+                    }
+                   
+                   System.out.println("Enter Cash paid  ");
+                   double cashPaid = sc.nextDouble();
+                   pm = new Payment(cashPaid);        
+                   pm.CalculateCashBack(cr.getcurrentinvoice().getNetAmount());
+                   
+                   if(pm.PaymentComplete())
+                   {
+                       System.out.println("Payament is Complete");
+                   }
+                   break;
+                }
+                case 5 : {
+                          if(cr.getcurrentinvoice() ==  null)
+                          {
+                              System.out.println("Not Active Invoice ");
+                              break;
+                          }
+                          rp.printFullReceipt(cr.getcurrentinvoice(),cr,pm);
+                          cr.closeInvoice();
+                          pm = null;
+                          break;
+                }
+                case 6 : System.out.println("Exiting ");
+                          break;
+                default : {
+                       System.out.println("Invalid Choice");
+                }
+               System.out.println();
+            }
+            
+          
+            
+        }while(choice != 6);
+       
+        sc.close();
+        
+ 
+    }
+    
+}
